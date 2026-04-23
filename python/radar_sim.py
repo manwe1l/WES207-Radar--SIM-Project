@@ -2,15 +2,15 @@ import serial
 import time
 import threading
 
-PORT = "COM4"      # Air Heltec COM port
+PORT = "COM4"          # Air Heltec COM port
 BAUD = 115200
-SEND_INTERVAL = 10.0   # Send every 10 seconds
+SEND_INTERVAL = 20.0   # One packet every 20 seconds
 
-# Open the serial port
+# Open serial port
 ser = serial.Serial(PORT, BAUD, timeout=1)
-time.sleep(2)   # Give the board time to reset
+time.sleep(2)   # Let the board reset
 
-# Short mode messages
+# Short status messages
 commands = {
     "b": "M=B,H=OK,A=0\n",   # Booting
     "t": "M=T,H=OK,A=0\n",   # Standby
@@ -26,28 +26,35 @@ lock = threading.Lock()
 def sender_loop():
     global running
 
+    # Send one full status packet at startup
+    with lock:
+        key = current_key
+
+    if key in commands:
+        msg = commands[key]
+        ser.write(msg.encode())
+        print("[TX startup]", msg.strip())
+
+    # Send one status packet every 20 seconds
     while running:
-        # Get the current state
+        time.sleep(SEND_INTERVAL)
+
         with lock:
             key = current_key
 
-        # Send the current state if valid
         if key in commands:
             msg = commands[key]
             ser.write(msg.encode())
-            print("[TX]", msg.strip())
+            print("[TX periodic]", msg.strip())
 
-        # Read any reply from the Heltec
+        # Read any replies from the Heltec
         time.sleep(0.1)
         while ser.in_waiting:
             response = ser.readline().decode(errors="ignore").strip()
             if response:
                 print("[Heltec]", response)
 
-        # Wait before sending again
-        time.sleep(SEND_INTERVAL)
-
-# Start the background sender
+# Start background sender
 thread = threading.Thread(target=sender_loop, daemon=True)
 thread.start()
 
@@ -58,7 +65,8 @@ print("a = ACTIVE")
 print("s = SLEEP")
 print("e = ERROR")
 print("q = QUIT")
-print("===============================")
+print("State changes are sent on the next 20-second update")
+print("================================")
 
 while True:
     key = input("Enter command: ").strip().lower()
