@@ -2,7 +2,7 @@
 #include <RadioLib.h>
 #include <SPI.h>
 
-// LoRa pins for Heltec V3
+// Heltec V3 LoRa pins
 #define LORA_NSS_PIN   8
 #define LORA_SCK_PIN   9
 #define LORA_MOSI_PIN  10
@@ -23,10 +23,10 @@ SX1262 radio = new Module(LORA_NSS_PIN, LORA_DIO1_PIN, LORA_RST_PIN, LORA_BUSY_P
 #define LORA_SF   7
 #define LORA_CR   5
 
-// Packet counter
 unsigned long packetId = 0;
+bool firstPacket = true;
 
-// Print an error and stop
+// Print error and stop
 void error_message(const char* message, int16_t state) {
   Serial.printf("ERROR: %s (code %d)\n", message, state);
   while (true) {
@@ -47,7 +47,16 @@ void initRadio() {
 // Build the final packet
 String buildPacket(const String& msg) {
   packetId++;
-  return "ID=" + String(packetId) + "," + msg;
+
+  String packetType;
+  if (firstPacket) {
+    packetType = "T=INIT";
+    firstPacket = false;
+  } else {
+    packetType = "T=STAT";
+  }
+
+  return packetType + ",ID=" + String(packetId) + "," + msg;
 }
 
 void setup() {
@@ -61,7 +70,7 @@ void setup() {
 }
 
 void loop() {
-  // Read one line from the air laptop
+  // Read one status line from the air laptop
   if (Serial.available()) {
     String incoming = Serial.readStringUntil('\n');
     incoming.trim();
@@ -71,17 +80,16 @@ void loop() {
       return;
     }
 
-    // Build a packet with an ID
+    // Build packet
     String packet = buildPacket(incoming);
 
-    // Print what is being sent
     Serial.print("UART RX: ");
     Serial.println(incoming);
 
     Serial.print("LoRa TX: ");
     Serial.println(packet);
 
-    // Send over LoRa
+    // Send packet over LoRa
     int state = radio.transmit(packet);
 
     if (state == RADIOLIB_ERR_NONE) {
