@@ -2,7 +2,7 @@
 #include <RadioLib.h>
 #include <SPI.h>
 
-// LoRa pins for Heltec V3
+// Heltec V3 LoRa pins
 #define LORA_NSS_PIN   8
 #define LORA_SCK_PIN   9
 #define LORA_MOSI_PIN  10
@@ -23,7 +23,7 @@ SX1262 radio = new Module(LORA_NSS_PIN, LORA_DIO1_PIN, LORA_RST_PIN, LORA_BUSY_P
 #define LORA_SF   7
 #define LORA_CR   5
 
-// Print an error and stop
+// Print error and stop
 void error_message(const char* message, int16_t state) {
   Serial.printf("ERROR: %s (code %d)\n", message, state);
   while (true) {
@@ -55,7 +55,6 @@ void loop() {
   String packet;
   int state = radio.receive(packet);
 
-  // Print packet if received
   if (state == RADIOLIB_ERR_NONE) {
     Serial.print("DATA: ");
     Serial.println(packet);
