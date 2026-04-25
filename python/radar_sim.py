@@ -2,9 +2,9 @@ import serial
 import time
 import threading
 
-PORT = "COM4"          # Air Heltec COM port
+PORT = "COM7"          # Air Heltec COM port
 BAUD = 115200
-SEND_INTERVAL = 20.0   # One packet every 20 seconds
+SEND_INTERVAL = 30.0   # One packet every 20 seconds
 
 # Open serial port
 ser = serial.Serial(PORT, BAUD, timeout=1)
