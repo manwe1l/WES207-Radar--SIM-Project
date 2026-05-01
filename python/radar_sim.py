@@ -1,86 +1,77 @@
 import serial
 import time
-import threading
 
-PORT = "COM7"          # Air Heltec COM port
+PORT = "COM5"      # Air Heltec COM port
 BAUD = 115200
-SEND_INTERVAL = 30.0   # One packet every 20 seconds
 
-# Open serial port
-ser = serial.Serial(PORT, BAUD, timeout=1)
-time.sleep(2)   # Let the board reset
+# Current simulated radar state
+current_mode = "MTI"
+current_tx = "EN"
+current_health = "OK"
+current_alarm = "0"
 
-# Short status messages
-commands = {
-    "b": "M=B,H=OK,A=0\n",   # Booting
-    "t": "M=T,H=OK,A=0\n",   # Standby
-    "a": "M=A,H=OK,A=0\n",   # Active
-    "s": "M=S,H=OK,A=0\n",   # Sleep
-    "e": "M=E,H=F,A=1\n",    # Error
-}
 
-current_key = "t"   # Start in standby
-running = True
-lock = threading.Lock()
+def parse_packet(packet):
+    """Split packet text into fields."""
+    fields = {}
+    for part in packet.split(","):
+        if "=" in part:
+            key, value = part.split("=", 1)
+            fields[key.strip()] = value.strip()
+    return fields
 
-def sender_loop():
-    global running
 
-    # Send one full status packet at startup
-    with lock:
-        key = current_key
+def build_status_packet(cid):
+    """Build one returned status packet."""
+    return (
+        f"T=STAT,CID={cid},MODE={current_mode},TX={current_tx},"
+        f"H={current_health},A={current_alarm}\n"
+    )
 
-    if key in commands:
-        msg = commands[key]
-        ser.write(msg.encode())
-        print("[TX startup]", msg.strip())
 
-    # Send one status packet every 20 seconds
-    while running:
-        time.sleep(SEND_INTERVAL)
+def main():
+    global current_mode, current_tx
 
-        with lock:
-            key = current_key
+    ser = serial.Serial(PORT, BAUD, timeout=1)
+    time.sleep(2)
 
-        if key in commands:
-            msg = commands[key]
-            ser.write(msg.encode())
-            print("[TX periodic]", msg.strip())
+    print("Air radar simulator started.")
+    print("Waiting for command packets...")
 
-        # Read any replies from the Heltec
-        time.sleep(0.1)
-        while ser.in_waiting:
-            response = ser.readline().decode(errors="ignore").strip()
-            if response:
-                print("[Heltec]", response)
+    try:
+        while True:
+            if ser.in_waiting:
+                line = ser.readline().decode(errors="ignore").strip()
 
-# Start background sender
-thread = threading.Thread(target=sender_loop, daemon=True)
-thread.start()
+                if not line:
+                    continue
 
-print("=== Radar Telemetry Control ===")
-print("b = BOOTING")
-print("t = STANDBY")
-print("a = ACTIVE")
-print("s = SLEEP")
-print("e = ERROR")
-print("q = QUIT")
-print("State changes are sent on the next 20-second update")
-print("================================")
+                print("[AIR RX]", line)
 
-while True:
-    key = input("Enter command: ").strip().lower()
+                if not line.startswith("T=CMD"):
+                    continue
 
-    if key == "q":
-        running = False
-        break
-    elif key in commands:
-        with lock:
-            current_key = key
-        print("State changed to:", commands[key].strip())
-    else:
-        print("Invalid key.")
+                fields = parse_packet(line)
 
-thread.join(timeout=1)
-ser.close()
-print("Exited cleanly.")
+                # Update simulated radar state
+                if "MODE" in fields:
+                    current_mode = fields["MODE"]
+                if "TX" in fields:
+                    current_tx = fields["TX"]
+
+                cid = fields.get("CID", "0")
+
+                # Send status back
+                status = build_status_packet(cid)
+                ser.write(status.encode())
+                print("[AIR TX]", status.strip())
+
+    except KeyboardInterrupt:
+        print("\nStopped by user.")
+    finally:
+        ser.close()
+        print("Serial port closed.")
+
+
+if __name__ == "__main__":
+    main()

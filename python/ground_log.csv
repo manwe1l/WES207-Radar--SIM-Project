@@ -1,0 +1,4 @@
+timestamp,delta_sec,packet
+2026-04-24 19:19:32,,"T=INIT,ID=1,M=T,H=OK,A=0"
+2026-04-24 19:20:09,37.56,"T=STAT,ID=2,M=A,H=OK,A=0"
+2026-04-24 19:20:40,30.3,"T=STAT,ID=3,M=E,H=F,A=1"
