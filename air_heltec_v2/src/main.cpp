@@ -2,6 +2,7 @@
 #include <RadioLib.h>
 #include <SPI.h>
 
+// Heltec LoRa pins
 #define LORA_NSS_PIN   8
 #define LORA_SCK_PIN   9
 #define LORA_MOSI_PIN  10
@@ -16,6 +17,7 @@ SX1262 radio = new Module(
   LORA_NSS_PIN, LORA_DIO1_PIN, LORA_RST_PIN, LORA_BUSY_PIN, spi, spiSettings
 );
 
+// LoRa settings
 #define LORA_CH   17
 #define LORA_FREQ (902.3 + 0.2 * LORA_CH)
 #define LORA_BW   125.0
@@ -24,6 +26,7 @@ SX1262 radio = new Module(
 
 volatile bool receivedFlag = false;
 
+// Set receive flag when packet arrives
 #if defined(ESP8266) || defined(ESP32)
 ICACHE_RAM_ATTR
 #endif
@@ -39,11 +42,14 @@ void error_message(const char* message, int16_t state) {
 }
 
 void initRadio() {
+  // Start SPI bus
   spi.begin(LORA_SCK_PIN, LORA_MISO_PIN, LORA_MOSI_PIN, LORA_NSS_PIN);
 
+  // Start radio
   int state = radio.begin(LORA_FREQ, LORA_BW, LORA_SF, LORA_CR, 0x34, 0, 8);
   if (state != RADIOLIB_ERR_NONE) error_message("Radio init failed", state);
 
+  // Basic radio setup
   state = radio.setCurrentLimit(140.0);
   if (state != RADIOLIB_ERR_NONE) error_message("Current limit failed", state);
 
@@ -56,8 +62,10 @@ void initRadio() {
   state = radio.setCRC(2);
   if (state != RADIOLIB_ERR_NONE) error_message("CRC failed", state);
 
+  // Use interrupt on packet receive
   radio.setDio1Action(receiveISR);
 
+  // Start in receive mode
   state = radio.startReceive();
   if (state != RADIOLIB_ERR_NONE) error_message("Start receive failed", state);
 }
@@ -70,6 +78,7 @@ void setup() {
 }
 
 void loop() {
+  // Forward LoRa command to air laptop
   if (receivedFlag) {
     receivedFlag = false;
 
@@ -78,7 +87,14 @@ void loop() {
 
     if (state == RADIOLIB_ERR_NONE) {
       if (packet.startsWith("T=CMD")) {
-        Serial.println(packet);
+        float rssi = radio.getRSSI();
+        float snr = radio.getSNR();
+
+        String out = packet +
+                     ",RSSI=" + String(rssi, 2) +
+                     ",SNR=" + String(snr, 2);
+
+        Serial.println(out);
       }
     }
 
@@ -86,6 +102,7 @@ void loop() {
     if (state != RADIOLIB_ERR_NONE) error_message("Resume receive failed", state);
   }
 
+  // Forward air laptop status over LoRa
   if (Serial.available()) {
     String line = Serial.readStringUntil('\n');
     line.trim();
