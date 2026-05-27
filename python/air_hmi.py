@@ -8,9 +8,18 @@ from tkinter import ttk, messagebox
 
 PORT = "COM7"      # Air Heltec COM port
 BAUD = 115200
-LOG_FILE = f"air_log_{time.strftime('%Y%m%d_%H%M%S')}.csv"
 
-# Random startup state
+# Find the folder where this script is saved
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Save air logs in the repo logs folder
+LOG_DIR = os.path.join(BASE_DIR, "..", "logs", "air_logs")
+os.makedirs(LOG_DIR, exist_ok=True)
+
+# Create a new log file each time the program starts
+LOG_FILE = os.path.join(LOG_DIR, f"air_log_{time.strftime('%Y%m%d_%H%M%S')}.csv")
+
+# Pick a random startup state
 startup_modes = ["MTI", "SARV", "MLV", "MSV"]
 startup_tx = ["EN", "DIS"]
 
@@ -22,7 +31,7 @@ current_alarm = "0"
 last_command_packet = ""
 last_status_packet = ""
 
-# Open serial link to air Heltec
+# Open serial link to the air Heltec
 ser = serial.Serial(PORT, BAUD, timeout=0.1)
 time.sleep(2)
 
@@ -95,7 +104,7 @@ def parse_packet(packet):
 
 
 def add_log(text):
-    """Show one line in the event log."""
+    """Show one line in the event log box."""
     log_box.insert(tk.END, text + "\n")
     log_box.see(tk.END)
 
@@ -116,6 +125,7 @@ def send_status(cid):
     ser.write(packet.encode())
     last_status_packet = packet.strip()
 
+    # Update the screen
     status_packet_var.set(last_status_packet)
     mode_var.set(mode_label(current_mode))
     tx_var.set(tx_label(current_tx))
@@ -123,12 +133,14 @@ def send_status(cid):
     alarm_var.set(current_alarm)
     last_update_var.set(time.strftime("%Y-%m-%d %H:%M:%S"))
 
+    # Add line to event log
     add_log(
         f"AIR TX | Type=Status | CID={cid} | "
         f"Mode={mode_label(current_mode)} | TX={tx_label(current_tx)} | "
         f"Health={current_health} | Alarm={current_alarm}"
     )
 
+    # Save line to CSV
     log_row(
         "STATUS_SENT",
         cid,
@@ -152,6 +164,7 @@ def poll_serial():
         if not line:
             continue
 
+        # Only handle command packets
         if line.startswith("T=CMD"):
             last_command_packet = line
             command_packet_var.set(line)
@@ -161,11 +174,13 @@ def poll_serial():
             cmd_rssi = fields.get("RSSI", "")
             cmd_snr = fields.get("SNR", "")
 
+            # Update current air-side state
             if "MODE" in fields:
                 current_mode = fields["MODE"]
             if "TX" in fields:
                 current_tx = fields["TX"]
 
+            # Update the screen
             mode_var.set(mode_label(current_mode))
             tx_var.set(tx_label(current_tx))
             health_var.set(current_health)
@@ -174,12 +189,14 @@ def poll_serial():
             rssi_var.set(cmd_rssi)
             snr_var.set(cmd_snr)
 
+            # Add line to event log
             add_log(
                 f"AIR RX | Type=Command | CID={cid} | "
                 f"Mode={mode_label(current_mode)} | TX={tx_label(current_tx)} | "
                 f"RSSI={cmd_rssi} dBm | SNR={cmd_snr} dB"
             )
 
+            # Save line to CSV
             log_row(
                 "COMMAND_RECEIVED",
                 cid,
@@ -192,8 +209,10 @@ def poll_serial():
                 line
             )
 
+            # Send updated status back
             send_status(cid)
 
+    # Check again after 100 ms
     root.after(100, poll_serial)
 
 
@@ -212,12 +231,13 @@ def on_close():
         root.destroy()
 
 
-# Build GUI window
+# Build the main GUI window
 root = tk.Tk()
 root.title("Air Radar Simulator HMI")
 root.geometry("940x720")
 root.protocol("WM_DELETE_WINDOW", on_close)
 
+# Variables used by the GUI
 mode_var = tk.StringVar(value=mode_label(current_mode))
 tx_var = tk.StringVar(value=tx_label(current_tx))
 health_var = tk.StringVar(value=current_health)
@@ -229,6 +249,7 @@ log_file_var = tk.StringVar(value=LOG_FILE)
 rssi_var = tk.StringVar(value="")
 snr_var = tk.StringVar(value="")
 
+# Top section: current radar state
 top = ttk.LabelFrame(root, text="Current Radar State")
 top.pack(fill="x", padx=10, pady=10)
 
@@ -256,6 +277,7 @@ ttk.Label(top, textvariable=last_update_var).grid(row=3, column=1, padx=5, pady=
 ttk.Label(top, text="Log File:").grid(row=4, column=0, padx=5, pady=5, sticky="w")
 ttk.Label(top, textvariable=log_file_var, wraplength=700).grid(row=4, column=1, columnspan=3, padx=5, pady=5, sticky="w")
 
+# Middle section: last packets
 mid = ttk.LabelFrame(root, text="Packets")
 mid.pack(fill="x", padx=10, pady=10)
 
@@ -265,18 +287,21 @@ ttk.Label(mid, textvariable=command_packet_var, wraplength=800).grid(row=1, colu
 ttk.Label(mid, text="Last Status Packet:").grid(row=2, column=0, padx=5, pady=5, sticky="w")
 ttk.Label(mid, textvariable=status_packet_var, wraplength=800).grid(row=3, column=0, padx=5, pady=5, sticky="w")
 
+# Buttons
 btn_frame = ttk.Frame(root)
 btn_frame.pack(fill="x", padx=10, pady=5)
 
 ttk.Button(btn_frame, text="Resend Current Status", command=resend_status).pack(side="left", padx=5)
 ttk.Button(btn_frame, text="Exit", command=on_close).pack(side="right", padx=5)
 
+# Bottom section: event log
 log_frame = ttk.LabelFrame(root, text="Event Log")
 log_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
 log_box = tk.Text(log_frame, height=18)
 log_box.pack(fill="both", expand=True, padx=5, pady=5)
 
+# Start program
 ensure_csv_header()
 add_log("Air HMI started.")
 add_log(f"Random startup state: Mode={mode_label(current_mode)}, TX={tx_label(current_tx)}")
