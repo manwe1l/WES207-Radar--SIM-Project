@@ -1,0 +1,94 @@
+=== Radar Telemetry Control ===
+[TX startup] M=T,H=OK,A=0
+b = BOOTING
+t = STANDBY
+a = ACTIVE
+s = SLEEP
+e = ERROR
+q = QUIT
+State changes are sent on the next 20-second update
+================================
+Enter command: b
+State changed to: M=B,H=OK,A=0
+Enter command: [TX periodic] M=B,H=OK,A=0
+[Heltec] AIR_HELTEC_READY
+[Heltec] 20-second safety lock enabled
+[Heltec] Waiting for air laptop commands...
+[Heltec] UART RX: M=T,H=OK,A=0
+[Heltec] LoRa TX: T=INIT,ID=1,M=T,H=OK,A=0
+[Heltec] LoRa TX: Complete!
+[Heltec] UART RX: M=B,H=OK,A=0
+[Heltec] LoRa TX: T=STAT,ID=2,M=B,H=OK,A=0
+[Heltec] LoRa TX: Complete!
+s
+State changed to: M=S,H=OK,A=0
+Enter command: [TX periodic] M=S,H=OK,A=0
+[Heltec] UART RX: M=S,H=OK,A=0
+[Heltec] LoRa TX: T=STAT,ID=3,M=S,H=OK,A=0
+[Heltec] LoRa TX: Complete!
+[TX periodic] M=S,H=OK,A=0
+[Heltec] UART RX: M=S,H=OK,A=0
+[Heltec] LoRa TX: T=STAT,ID=4,M=S,H=OK,A=0
+[Heltec] LoRa TX: Complete!
+[TX periodic] M=S,H=OK,A=0
+[Heltec] UART RX: M=S,H=OK,A=0
+[Heltec] LoRa TX: T=STAT,ID=5,M=S,H=OK,A=0
+[Heltec] oRa TX: Complete!
+[TX periodic] M=S,H=OK,A=0
+[Heltec] UART RX: M=S,H=OK,A=0
+[Heltec] LoRa TX: T=STAT,ID=6,M=S,H=OK,A=0
+[Heltec] LoRa TX: Complete!
+[TX periodic] M=S,H=OK,A=0
+[Heltec] UART RX: M=S,H=OK,A=0
+[Heltec] LoRa TX: T=STAT,ID=7,M=S,H=OK,A=0
+[Heltec] LoRa TX: Complete!
+[TX periodic] M=S,H=OK,A=0
+[Heltec] UART RX: M=S,H=OK,A=0
+[Heltec] LoRa TX: T=STAT,ID=8,M=S,H=OK,A=0
+[Heltec] LoRa TX: Complete!
+a
+State changed to: M=A,H=OK,A=0
+Enter command: a
+State changed to: M=A,H=OK,A=0
+Enter command: [TX periodic] M=A,H=OK,A=0
+[Heltec] UART RX: M=A,H=OK,A=0
+[Heltec] LoRa TX: T=STAT,ID=9,M=A,H=OK,A=0
+[Heltec] LoRa TX: Complete!
+t
+State changed to: M=T,H=OK,A=0
+Enter command: [TX periodic] M=T,H=OK,A=0
+[Heltec] UART RX: M=T,H=OK,A=0
+[Heltec] LoRa TX: T=STAT,ID=10,M=T,H=OK,A=0
+[Heltec] LoRa TX: Complete!
+[TX periodic] M=T,H=OK,A=0
+[Heltec] UART RX: M=T,H=OK,A=0
+[Heltec] LoRa TX: T=STAT,ID=11,M=T,H=OK,A=0
+[Heltec] LoRa TX: Complete!
+[TX periodic] M=T,H=OK,A=0
+[Heltec] UART RX: M=T,H=OK,A=0
+[Heltec] LoRa TX: T=STAT,ID=12,M=T,H=OK,A=0
+[Heltec] LoRa TX: Complete!
+e
+State changed to: M=E,H=F,A=1
+Enter command: [TX periodic] M=E,H=F,A=1
+[Heltec] UART RX: M=E,H=F,A=1
+[Heltec] LoRa TX: T=STAT,ID=13,M=E,H=F,A=1
+[Heltec] LoRa TX: Complete!
+[TX periodic] M=E,H=F,A=1
+[Heltec] UART RX: M=E,H=F,A=1
+[Heltec] LoRa TX: T=STAT,ID=14,M=E,H=F,A=1
+[Heltec] LoRa TX: Complete!
+[TX periodic] M=E,H=F,A=1
+[Heltec] UART RX: M=E,H=F,A=1
+[Heltec] LoRa TX: T=STAT,ID=15,M=E,H=F,A=1
+[Heltec] LoRa TX: Complete!
+[TX periodic] M=E,H=F,A=1
+[Heltec] UART RX: M=E,H=F,A=1
+[Heltec] LoRa TX: T=STAT,ID=16,M=E,H=F,A=1
+[Heltec] LoRa TX: Complete!
+[TX periodic] M=E,H=F,A=1
+[Heltec] UART RX: M=E,H=F,A=1
+[Heltec] LoRa TX: T=STAT,ID=17,M=E,H=F,A=1
+[Heltec] LoRa TX: Complete!
+q
+Exited cleanly.

@@ -1,0 +1,84 @@
+Reconnecting to COM4     Connected!
+GROUND_HELTEC_READY
+Initializing radio...Complete!
+Starting continuous receive...Complete!
+RX COUNT: 1
+TIME MS: 14540
+DATA: T=STAT,ID=2,M=B,H=OK,A=0
+RSSI: -58.00 dBm
+--------------------
+RX COUNT: 2
+TIME MS: 44646
+DATA: T=STAT,ID=3,M=S,H=OK,A=0
+RSSI: -37.00 dBm
+--------------------
+RX COUNT: 3
+TIME MS: 74751
+DATA: T=STAT,ID=4,M=S,H=OK,A=0
+RSSI: -43.00 dBm
+--------------------
+RX COUNT: 4
+TIME MS: 104859
+DATA: T=STAT,ID=5,M=S,H=OK,A=0
+RSSI: -50.00 dBm
+--------------------
+RX COUNT: 5
+TIME MS: 134963
+DATA: T=STAT,ID=6,M=S,H=OK,A=0
+RSSI: -42.00 dBm
+--------------------
+RX COUNT: 6
+TIME MS: 165067
+DATA: T=STAT,ID=7,M=S,H=OK,A=0
+RSSI: -41.00 dBm
+--------------------
+RX COUNT: 7
+TIME MS: 195174
+DATA: T=STAT,ID=8,M=S,H=OK,A=0
+RSSI: -39.00 dBm
+--------------------
+RX COUNT: 8
+TIME MS: 225279
+DATA: T=STAT,ID=9,M=A,H=OK,A=0
+RSSI: -38.00 dBm
+--------------------
+RX COUNT: 9
+TIME MS: 255386
+DATA: T=STAT,ID=10,M=T,H=OK,A=0
+RSSI: -37.00 dBm
+--------------------
+RX COUNT: 10
+TIME MS: 285496
+DATA: T=STAT,ID=11,M=T,H=OK,A=0
+RSSI: -37.00 dBm
+--------------------
+RX COUNT: 11
+TIME MS: 315600
+DATA: T=STAT,ID=12,M=T,H=OK,A=0
+RSSI: -35.00 dBm
+--------------------
+RX COUNT: 12
+TIME MS: 345706
+DATA: T=STAT,ID=13,M=E,H=F,A=1
+RSSI: -47.00 dBm
+--------------------
+RX COUNT: 13
+TIME MS: 375810
+DATA: T=STAT,ID=14,M=E,H=F,A=1
+RSSI: -49.00 dBm
+--------------------
+RX COUNT: 14
+TIME MS: 405914
+DATA: T=STAT,ID=15,M=E,H=F,A=1
+RSSI: -40.00 dBm
+--------------------
+RX COUNT: 15
+TIME MS: 436018
+DATA: T=STAT,ID=16,M=E,H=F,A=1
+RSSI: -39.00 dBm
+--------------------
+RX COUNT: 16
+TIME MS: 466122
+DATA: T=STAT,ID=17,M=E,H=F,A=1
+RSSI: -40.00 dBm
+--------------------

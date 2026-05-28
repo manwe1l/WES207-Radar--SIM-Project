@@ -7,7 +7,16 @@ from tkinter import ttk, messagebox
 
 PORT = "COM4"      # Ground Heltec COM port
 BAUD = 115200
-LOG_FILE = f"ground_log_{time.strftime('%Y%m%d_%H%M%S')}.csv"
+
+# Find the folder where this script is saved
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Save ground logs in the repo logs folder
+LOG_DIR = os.path.join(BASE_DIR, "..", "logs", "ground_logs")
+os.makedirs(LOG_DIR, exist_ok=True)
+
+# Create a new log file each time the program starts
+LOG_FILE = os.path.join(LOG_DIR, f"ground_log_{time.strftime('%Y%m%d_%H%M%S')}.csv")
 
 # Open serial link to ground Heltec
 ser = serial.Serial(PORT, BAUD, timeout=0.1)
@@ -127,21 +136,25 @@ def send_command():
     packet = f"T=CMD,CID={command_id},TS={ts},MODE={commanded_mode},TX={commanded_tx}\n"
     ser.write(packet.encode())
 
+    # Save sent command info for match and latency check
     pending_commands[str(command_id)] = {
         "send_time": ts,
         "mode": commanded_mode,
         "tx": commanded_tx
     }
 
+    # Update the screen
     commanded_mode_var.set(mode_label(commanded_mode))
     commanded_tx_var.set(tx_label(commanded_tx))
     command_packet_var.set(packet.strip())
 
+    # Add line to event log
     add_log(
         f"GROUND TX | Type=Command | CID={command_id} | "
         f"Mode={mode_label(commanded_mode)} | TX={tx_label(commanded_tx)}"
     )
 
+    # Save line to CSV
     log_result([
         time.strftime("%Y-%m-%d %H:%M:%S"),
         "COMMAND_SENT",
@@ -212,6 +225,7 @@ def poll_serial():
         if not line:
             continue
 
+        # Only handle returned status packets
         if line.startswith("T=STAT"):
             last_packet_time = time.time()
             total_responses += 1
@@ -226,6 +240,7 @@ def poll_serial():
             rep_rssi = fields.get("RSSI", "")
             rep_snr = fields.get("SNR", "")
 
+            # Update the screen
             packet_type_var.set(packet_type_label(fields.get("T", "")))
             packet_id_var.set(cid)
             reported_mode_var.set(mode_label(rep_mode))
@@ -240,6 +255,7 @@ def poll_serial():
             latency = ""
             match_value = "NO"
 
+            # Compare returned status to sent command
             if cid in pending_commands:
                 sent = pending_commands[cid]
                 latency = round(time.time() - sent["send_time"], 2)
@@ -251,6 +267,7 @@ def poll_serial():
                     match_value = "NO"
                     mismatch_count += 1
 
+            # Add line to event log
             add_log(
                 f"GROUND RX | Type=Status | CID={cid} | "
                 f"Mode={mode_label(rep_mode)} | TX={tx_label(rep_tx)} | "
@@ -259,6 +276,7 @@ def poll_serial():
                 f"Latency={latency}s | Match={match_value}"
             )
 
+            # Save line to CSV
             log_result([
                 time.strftime("%Y-%m-%d %H:%M:%S"),
                 "STATUS_RECEIVED",
@@ -279,12 +297,14 @@ def poll_serial():
             update_result()
             update_metrics_labels()
 
+    # Update link status
     if last_packet_time is None:
         link_var.set("NO DATA")
     else:
         age = time.time() - last_packet_time
         link_var.set("OK" if age <= 60 else "STALE")
 
+    # Check again after 100 ms
     root.after(100, poll_serial)
 
 
@@ -304,6 +324,7 @@ root.title("Ground Radar Telemetry HMI")
 root.geometry("1240x820")
 root.protocol("WM_DELETE_WINDOW", on_close)
 
+# Variables used by the GUI
 link_var = tk.StringVar(value="NO DATA")
 last_update_var = tk.StringVar(value="")
 packet_id_var = tk.StringVar(value="")
@@ -330,6 +351,7 @@ rssi_var = tk.StringVar(value="")
 snr_var = tk.StringVar(value="")
 raw_packet_var = tk.StringVar(value="")
 
+# Top section: link status
 top = ttk.LabelFrame(root, text="Link Status")
 top.pack(fill="x", padx=10, pady=10)
 
@@ -345,9 +367,11 @@ for i, (label, var) in enumerate(labels):
 ttk.Label(top, text="Log File:").grid(row=1, column=0, sticky="w", padx=5, pady=5)
 ttk.Label(top, textvariable=log_file_var, wraplength=950).grid(row=1, column=1, columnspan=9, sticky="w", padx=5, pady=5)
 
+# Middle section
 middle = ttk.Frame(root)
 middle.pack(fill="x", padx=10, pady=10)
 
+# Left side: commanded state
 cmd_frame = ttk.LabelFrame(middle, text="Commanded State")
 cmd_frame.pack(side="left", fill="both", expand=True, padx=5)
 
@@ -367,6 +391,7 @@ ttk.Button(cmd_frame, text="Resend Command", command=resend_command).grid(row=5,
 ttk.Label(cmd_frame, text="Last Command Packet:").grid(row=6, column=0, sticky="w", padx=5, pady=5)
 ttk.Label(cmd_frame, textvariable=command_packet_var, wraplength=420).grid(row=7, column=0, columnspan=2, sticky="w", padx=5, pady=5)
 
+# Right side: returned radar state
 rep_frame = ttk.LabelFrame(middle, text="Reported Radar State")
 rep_frame.pack(side="left", fill="both", expand=True, padx=5)
 
@@ -383,6 +408,7 @@ for r, (label, var) in enumerate(report_items):
     ttk.Label(rep_frame, text=label).grid(row=r, column=0, sticky="w", padx=5, pady=5)
     ttk.Label(rep_frame, textvariable=var, wraplength=420).grid(row=r, column=1, sticky="w", padx=5, pady=5)
 
+# Metric section
 metrics = ttk.LabelFrame(root, text="Test Metrics")
 metrics.pack(fill="x", padx=10, pady=10)
 
@@ -398,16 +424,19 @@ for i, (label, var) in enumerate(metric_items):
     ttk.Label(metrics, text=label).grid(row=0, column=i*2, sticky="w", padx=5, pady=5)
     ttk.Label(metrics, textvariable=var).grid(row=0, column=i*2+1, sticky="w", padx=5, pady=5)
 
+# Exit button
 btn_frame = ttk.Frame(root)
 btn_frame.pack(fill="x", padx=10, pady=5)
 ttk.Button(btn_frame, text="Exit", command=on_close).pack(side="right", padx=5)
 
+# Bottom section: event log
 log_frame = ttk.LabelFrame(root, text="Event Log")
 log_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
 log_box = tk.Text(log_frame, height=14)
 log_box.pack(fill="both", expand=True, padx=5, pady=5)
 
+# Start program
 ensure_csv_header()
 add_log("Ground HMI started.")
 poll_serial()
