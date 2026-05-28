@@ -6,7 +6,7 @@ import random
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-PORT = "COM7"      # Air Heltec COM port
+PORT = "COM3"      # Air Heltec COM port
 BAUD = 115200
 
 # Find the folder where this script is saved

@@ -1,0 +1,2 @@
+timestamp,event_type,command_id,mode,tx_state,health,alarm,rssi_dbm,snr_db,raw_packet
+2026-05-08 07:21:13,STATUS_SENT,0,MTI,Disabled,OK,0,,,"T=STAT,CID=0,MODE=MTI,TX=DIS,H=OK,A=0"
