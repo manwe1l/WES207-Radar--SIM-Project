@@ -1,0 +1,2 @@
+timestamp,event_type,command_id,mode,tx_state,health,alarm,rssi_dbm,snr_db,raw_packet
+2026-05-27 19:40:18,STATUS_SENT,0,Maritime Small,Enabled,OK,0,,,"T=STAT,CID=0,MODE=MSV,TX=EN,H=OK,A=0"
